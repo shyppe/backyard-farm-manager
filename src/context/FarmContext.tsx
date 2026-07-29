@@ -346,32 +346,24 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const batch = farmData.incubatorBatches.find(b => b.id === batchId);
     if (!batch) return;
 
+    const validHatchedCount = Math.max(0, Number(hatchedCount) || 0);
+
     // Update batch status
     const updatedBatches = farmData.incubatorBatches.map(b =>
-      b.id === batchId ? { ...b, status: 'Hatched' as const, hatchedCount } : b
+      b.id === batchId ? { ...b, status: 'Hatched' as const, hatchedCount: validHatchedCount } : b
     );
 
     // Update Egg Storage metrics
     const updatedStorage = {
       ...farmData.eggStorage,
-      totalHatched: farmData.eggStorage.totalHatched + hatchedCount,
+      totalHatched: Number(farmData.eggStorage.totalHatched || 0) + validHatchedCount,
     };
 
-    // AUTOMATIC RULE: Automatically add hatched chicks/poults to Animals count!
     let updatedAnimals = [...farmData.animals];
-    const chickStatus = batch.species === 'Turkey' ? 'Poult' : 'Chick';
-    
-    // Find if existing chick record exists for this breed
-    const existingIndex = updatedAnimals.findIndex(
-      a => a.type === batch.species && a.breed === batch.breed && a.status === chickStatus
-    );
 
-    if (existingIndex >= 0) {
-      updatedAnimals[existingIndex] = {
-        ...updatedAnimals[existingIndex],
-        quantity: updatedAnimals[existingIndex].quantity + hatchedCount,
-      };
-    } else {
+    if (validHatchedCount > 0) {
+      const chickStatus = batch.species === 'Turkey' ? 'Poult' : 'Chick';
+
       const newChickRecord: Animal = {
         id: 'ANM-' + Math.floor(100 + Math.random() * 900),
         type: batch.species,
@@ -381,7 +373,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         status: chickStatus,
         dateAcquired: getTodayDateString(),
         birthDate: getTodayDateString(),
-        quantity: hatchedCount,
+        quantity: validHatchedCount,
         purchasePrice: 0,
         currentValue: 10,
         weight: 0.2,
@@ -398,7 +390,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       animals: updatedAnimals,
     };
 
-    addActivityLog('Batch Hatched!', `${hatchedCount} new ${chickStatus}s hatched from batch "${batch.batchName}" and added to animals!`, 'incubator');
+    addActivityLog('Batch Hatched!', `${validHatchedCount} new ${batch.species === 'Turkey' ? 'Poult' : 'Chick'}s hatched from batch "${batch.batchName}" and added to animals!`, 'incubator');
     await saveAndSync(updated);
   };
 
