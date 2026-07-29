@@ -31,11 +31,12 @@ interface FarmContextType {
   syncMessage: string;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  loginUser: (email: string) => Promise<void>;
+  loginUser: (email: string, appsScriptUrl?: string) => Promise<void>;
   logoutUser: () => void;
   switchUserEmail: (email: string) => Promise<void>;
   updateFarmProfile: (profile: Partial<FarmProfile>) => Promise<void>;
   completeSetupWizard: (profile: FarmProfile, startWithSampleData?: boolean) => Promise<void>;
+  importBackupJSON: (data: FullFarmData) => Promise<void>;
   
   // Animal CRUD
   addAnimal: (animal: Omit<Animal, 'id'>) => Promise<void>;
@@ -115,13 +116,16 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [currentUserEmail, isAuthenticated]);
 
-  const loginUser = async (email: string) => {
+  const loginUser = async (email: string, appsScriptUrl?: string) => {
     const formattedEmail = email.trim().toLowerCase();
     setCurrentUserEmail(formattedEmail);
     setIsAuthenticated(true);
     localStorage.setItem('farm_user_email', formattedEmail);
     localStorage.setItem('farm_is_authenticated', 'true');
-    await loadUserFarmData(formattedEmail);
+    if (appsScriptUrl && appsScriptUrl.trim().length > 10) {
+      localStorage.setItem(`gas_url_${formattedEmail}`, appsScriptUrl.trim());
+    }
+    await loadUserFarmData(formattedEmail, appsScriptUrl);
   };
 
   const logoutUser = () => {
@@ -129,34 +133,37 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('farm_is_authenticated');
   };
 
-  async function loadUserFarmData(email: string) {
+  async function loadUserFarmData(email: string, overrideAppsScriptUrl?: string) {
     setIsLoading(true);
     setSyncStatus('syncing');
-    setSyncMessage('Checking Google Drive for existing farm data...');
+    setSyncMessage('Checking Google Drive & local storage for farm data...');
 
-    // Try loading saved Apps Script URL from local config
-    const savedAppsScriptUrl = localStorage.getItem(`gas_url_${email}`);
+    // Try loading saved Apps Script URL from local config or override parameter
+    const savedAppsScriptUrl = overrideAppsScriptUrl || localStorage.getItem(`gas_url_${email}`) || undefined;
 
-    const result = await loadFarmDataFromBackend(email, savedAppsScriptUrl || undefined);
+    const result = await loadFarmDataFromBackend(email, savedAppsScriptUrl);
     setSyncMode(result.mode);
 
     if (result.data) {
+      if (result.data.profile?.appsScriptUrl) {
+        localStorage.setItem(`gas_url_${email}`, result.data.profile.appsScriptUrl);
+      }
       setFarmData(result.data);
       setSyncStatus('synced');
       setSyncMessage(result.mode === 'google_apps_script' 
         ? 'Loaded farm data live from Google Apps Script!' 
         : 'Loaded farm data automatically from Google Drive JSON storage.');
     } else {
-      // If default demo email and no data found yet, populate sample initial data
-      if (email === 'jackjackque1147@gmail.com') {
+      // If default demo email and no local data found AND no Apps Script URL configured, populate initial demo sample data
+      if (email === 'jackjackque1147@gmail.com' && !savedAppsScriptUrl) {
         const initial = createInitialFarmData(email, "Zac's Backyard Farm", 'Zac');
         setFarmData(initial);
         await saveAndSync(initial);
       } else {
-        // New Gmail account with no existing farm -> set data to null to show Setup Wizard
+        // No existing farm data found on this device and no Apps Script URL returned data
         setFarmData(null);
         setSyncStatus('synced');
-        setSyncMessage('New account detected. Complete setup wizard to create Google Drive storage.');
+        setSyncMessage('No local data on this device. Connect Google Apps Script URL or import backup.');
       }
     }
     setIsLoading(false);
@@ -170,12 +177,24 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSyncStatus('syncing');
 
     const appsScriptUrl = updatedData.profile.appsScriptUrl || localStorage.getItem(`gas_url_${currentUserEmail}`) || undefined;
+    if (appsScriptUrl) {
+      localStorage.setItem(`gas_url_${currentUserEmail}`, appsScriptUrl);
+    }
 
     const res = await syncFarmDataToBackend(currentUserEmail, updatedData, appsScriptUrl);
     setSyncMode(res.mode);
     setSyncStatus('synced');
     setSyncMessage(res.message);
   }
+
+  const importBackupJSON = async (importedData: FullFarmData) => {
+    if (!importedData || !importedData.profile || !Array.isArray(importedData.animals)) {
+      throw new Error('Invalid FarmData.json backup structure');
+    }
+    importedData.profile.googleEmail = currentUserEmail;
+    importedData.profile.updatedAt = getTodayDateString();
+    await saveAndSync(importedData);
+  };
 
   const switchUserEmail = async (email: string) => {
     setCurrentUserEmail(email);
@@ -606,6 +625,7 @@ export const FarmProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         switchUserEmail,
         updateFarmProfile,
         completeSetupWizard,
+        importBackupJSON,
         addAnimal,
         updateAnimal,
         deleteAnimal,
