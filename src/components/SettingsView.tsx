@@ -157,7 +157,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
               type="text"
               value={appsScriptUrlInput}
               onChange={e => setAppsScriptUrlInput(e.target.value)}
-              placeholder="https://script.google.com/macros/s/AKfycbxdU5nPg24h7-SGuqi1KPFZ13902KGw4MsdOAAIHgzjdImTwBAA0CmCX1uWv9D-FLXMow/exec"
+              placeholder="https://script.google.com/macros/s/.../exec"
               className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-[11px]"
             />
             <p className="text-[10px] text-slate-500 mt-1">
