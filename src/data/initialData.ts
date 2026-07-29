@@ -1,0 +1,532 @@
+import { FullFarmData, Animal, EggCollection, IncubatorBatch, InventoryItem, FeedingRecord, Expense, Sale, HealthRecord, MortalityRecord, FarmProfile, ActivityLog, FarmNotification } from '../types';
+import { getTodayDateString } from '../utils/dateUtils';
+
+const today = getTodayDateString();
+
+export function createEmptyFarmData(email: string = 'jackjackque1147@gmail.com', farmName: string = "My Backyard Farm", ownerName: string = 'Farm Owner'): FullFarmData {
+  const profile: FarmProfile = {
+    farmName,
+    ownerName,
+    farmAddress: '',
+    contactNumber: '',
+    googleEmail: email,
+    driveFolderId: 'drive_folder_' + Math.random().toString(36).substr(2, 9),
+    spreadsheetId: 'sheet_' + Math.random().toString(36).substr(2, 9),
+    isSetupComplete: true,
+    createdAt: today,
+    updatedAt: today,
+    farmLogo: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=250&q=80',
+    farmBanner: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80',
+  };
+
+  return {
+    profile,
+    animals: [],
+    eggCollections: [],
+    incubatorBatches: [],
+    inventory: [],
+    feedingRecords: [],
+    expenses: [],
+    sales: [],
+    healthRecords: [],
+    breedingPairs: [],
+    mortalityRecords: [],
+    eggStorage: {
+      availableEggs: 0,
+      totalCollected: 0,
+      totalSold: 0,
+      totalIncubated: 0,
+      totalHatched: 0,
+      totalBroken: 0,
+    },
+    activityLogs: [
+      {
+        id: 'ACT-001',
+        timestamp: today + ' 08:00 AM',
+        title: 'Farm Initialized',
+        description: 'Farm initialized with clean zero records. Ready for daily operations logging.',
+        type: 'system',
+      }
+    ],
+    notifications: [
+      {
+        id: 'NOTIF-001',
+        title: 'Welcome to Backyard Farm Manager',
+        message: 'Your clean farm instance is ready. Start by adding your first flock, inventory, or egg collection.',
+        date: today,
+        read: false,
+        type: 'egg',
+      }
+    ],
+  };
+}
+
+export function createInitialFarmData(email: string = 'jackjackque1147@gmail.com', farmName: string = "Zac's Backyard Farm", ownerName: string = 'Zac'): FullFarmData {
+  const profile: FarmProfile = {
+    farmName,
+    ownerName,
+    farmAddress: 'Purok 3, Brgy. San Jose, Lipa City, Batangas, Philippines',
+    contactNumber: '+63 917 839 2041',
+    googleEmail: email,
+    driveFolderId: 'drive_folder_' + Math.random().toString(36).substr(2, 9),
+    spreadsheetId: 'sheet_' + Math.random().toString(36).substr(2, 9),
+    isSetupComplete: true,
+    createdAt: today,
+    updatedAt: today,
+    farmLogo: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=250&q=80',
+    farmBanner: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80',
+  };
+
+  const animals: Animal[] = [
+    {
+      id: 'ANM-001',
+      type: 'Chicken',
+      breed: 'Rhode Island Red',
+      variety: 'Single Comb',
+      gender: 'Female',
+      status: 'Hen',
+      dateAcquired: '2025-08-10',
+      birthDate: '2025-03-15',
+      quantity: 12,
+      purchasePrice: 350,
+      currentValue: 550,
+      weight: 2.4,
+      color: 'Dark Red / Mahogany',
+      notes: 'Excellent layer breed. High egg production.',
+      photo: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      id: 'ANM-002',
+      type: 'Chicken',
+      breed: 'Plymouth Barred Rock',
+      variety: 'Barred',
+      gender: 'Female',
+      status: 'Hen',
+      dateAcquired: '2025-09-01',
+      birthDate: '2025-04-01',
+      quantity: 8,
+      purchasePrice: 400,
+      currentValue: 600,
+      weight: 2.6,
+      color: 'Black and White Striped',
+      notes: 'Dual purpose layers, very friendly temperament.',
+      photo: 'https://images.unsplash.com/photo-1563281577-a7be47e20db9?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      id: 'ANM-003',
+      type: 'Chicken',
+      breed: 'Rhode Island Red',
+      variety: 'Single Comb',
+      gender: 'Male',
+      status: 'Rooster',
+      dateAcquired: '2025-08-10',
+      birthDate: '2025-03-15',
+      quantity: 2,
+      purchasePrice: 500,
+      currentValue: 800,
+      weight: 3.8,
+      color: 'Mahogany Red',
+      notes: 'Active flock guardian roosters.',
+      photo: 'https://images.unsplash.com/photo-1612170153139-6f881ff067e0?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      id: 'ANM-004',
+      type: 'Turkey',
+      breed: 'Broad Breasted Bronze',
+      variety: 'Bronze',
+      gender: 'Female',
+      status: 'Hen Turkey',
+      dateAcquired: '2025-11-15',
+      birthDate: '2025-06-01',
+      quantity: 5,
+      purchasePrice: 1200,
+      currentValue: 2200,
+      weight: 6.2,
+      color: 'Iridescent Bronze',
+      notes: 'Healthy breeding turkey hens.',
+      photo: 'https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      id: 'ANM-005',
+      type: 'Turkey',
+      breed: 'Broad Breasted Bronze',
+      variety: 'Bronze',
+      gender: 'Male',
+      status: 'Tom',
+      dateAcquired: '2025-11-15',
+      birthDate: '2025-06-01',
+      quantity: 1,
+      purchasePrice: 1800,
+      currentValue: 3500,
+      weight: 9.5,
+      color: 'Deep Bronze',
+      notes: 'Primary breeding tom.',
+      photo: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=80',
+    },
+    {
+      id: 'ANM-006',
+      type: 'Chicken',
+      breed: 'Silkie',
+      variety: 'White',
+      gender: 'Female',
+      status: 'Chick',
+      dateAcquired: today,
+      birthDate: today,
+      quantity: 6,
+      purchasePrice: 180,
+      currentValue: 300,
+      weight: 0.25,
+      color: 'Fluffy White',
+      notes: 'Hatched from incubator batch #1.',
+      photo: 'https://images.unsplash.com/photo-1598965402089-897ce52e8355?auto=format&fit=crop&w=400&q=80',
+    },
+  ];
+
+  const eggCollections: EggCollection[] = [
+    {
+      id: 'EGG-101',
+      date: today,
+      animalType: 'Chicken',
+      breed: 'Rhode Island Red',
+      quantity: 11,
+      remarks: 'Morning collection, clean large eggs',
+    },
+    {
+      id: 'EGG-102',
+      date: today,
+      animalType: 'Chicken',
+      breed: 'Plymouth Barred Rock',
+      quantity: 7,
+      remarks: 'Afternoon collection',
+    },
+    {
+      id: 'EGG-103',
+      date: '2026-07-28',
+      animalType: 'Chicken',
+      breed: 'Rhode Island Red',
+      quantity: 10,
+      remarks: 'Good shell quality',
+    },
+    {
+      id: 'EGG-104',
+      date: '2026-07-28',
+      animalType: 'Turkey',
+      breed: 'Broad Breasted Bronze',
+      quantity: 4,
+      remarks: 'Turkey eggs for incubator',
+    }
+  ];
+
+  const incubatorBatches: IncubatorBatch[] = [
+    {
+      id: 'INC-001',
+      batchName: 'Batch #1 - RIR & Silkie',
+      dateStarted: '2026-07-08',
+      species: 'Chicken',
+      breed: 'Rhode Island Red / Silkie',
+      eggQuantity: 6,
+      expectedHatchDate: today,
+      status: 'Hatched',
+      hatchedCount: 6,
+      notes: '100% hatch rate! Transferred 6 healthy chicks to brooder.',
+    },
+    {
+      id: 'INC-002',
+      batchName: 'Batch #2 - Bronze Turkeys',
+      dateStarted: '2026-07-20',
+      species: 'Turkey',
+      breed: 'Broad Breasted Bronze',
+      eggQuantity: 4,
+      expectedHatchDate: '2026-08-17',
+      status: 'Incubating',
+      hatchedCount: 0,
+      notes: 'Candled on day 7: 4 fertile eggs developing well.',
+    },
+  ];
+
+  const inventory: InventoryItem[] = [
+    {
+      id: 'INV-001',
+      name: 'Organic Layer Feed 16%',
+      category: 'Feeds',
+      unit: 'kg',
+      quantity: 120,
+      minStock: 30,
+      purchaseDate: '2026-07-15',
+      supplier: 'BMEG / Countryside Feed Depot',
+      price: 38,
+      totalCost: 4560,
+      expirationDate: '2026-10-15',
+      notes: 'For laying hens',
+    },
+    {
+      id: 'INV-002',
+      name: 'Chick Starter Crumble 20%',
+      category: 'Feeds',
+      unit: 'kg',
+      quantity: 45,
+      minStock: 15,
+      purchaseDate: '2026-07-20',
+      supplier: 'AgriVet Feeds Supply',
+      price: 44,
+      totalCost: 1980,
+      expirationDate: '2026-11-01',
+      notes: 'High protein feed for chicks & poults',
+    },
+    {
+      id: 'INV-003',
+      name: 'Poultry Electrolytes & Multi-Vitamins',
+      category: 'Vitamins',
+      unit: 'bottle',
+      quantity: 4,
+      minStock: 2,
+      purchaseDate: '2026-07-01',
+      supplier: 'VetCare Agri-Pharma',
+      price: 350,
+      totalCost: 1400,
+      expirationDate: '2027-06-30',
+      notes: 'Water soluble multi-vitamins for heat stress relief',
+    },
+    {
+      id: 'INV-004',
+      name: 'Oxytetracycline Soluble Antibiotics',
+      category: 'Medicine',
+      unit: 'pack',
+      quantity: 3,
+      minStock: 2,
+      purchaseDate: '2026-06-10',
+      supplier: 'VetCare Agri-Pharma',
+      price: 450,
+      totalCost: 1350,
+      expirationDate: '2027-05-15',
+      notes: 'Broad spectrum antibiotic for CRD respiratory issues',
+    },
+    {
+      id: 'INV-005',
+      name: 'Automatic Poultry Drinker Nipples (10pk)',
+      category: 'Equipment',
+      unit: 'pcs',
+      quantity: 10,
+      minStock: 5,
+      purchaseDate: '2026-05-20',
+      supplier: 'AgriTech Direct',
+      price: 250,
+      totalCost: 2500,
+      expirationDate: 'N/A',
+      notes: 'For clean watering system in coops',
+    }
+  ];
+
+  const feedingRecords: FeedingRecord[] = [
+    {
+      id: 'FED-001',
+      date: today,
+      timeOfDay: 'Morning',
+      animalType: 'Chicken',
+      breed: 'Rhode Island Red & Barred Rock',
+      feedType: 'Organic Layer Feed 16%',
+      quantityKg: 3.5,
+      cost: 133,
+      feedItemId: 'INV-001',
+    },
+    {
+      id: 'FED-002',
+      date: today,
+      timeOfDay: 'Morning',
+      animalType: 'Turkey',
+      breed: 'Broad Breasted Bronze',
+      feedType: 'Organic Layer Feed 16%',
+      quantityKg: 2.0,
+      cost: 76,
+      feedItemId: 'INV-001',
+    },
+    {
+      id: 'FED-003',
+      date: '2026-07-28',
+      timeOfDay: 'Afternoon',
+      animalType: 'Chicken',
+      breed: 'All Hens',
+      feedType: 'Organic Layer Feed 16%',
+      quantityKg: 3.0,
+      cost: 114,
+      feedItemId: 'INV-001',
+    }
+  ];
+
+  const expenses: Expense[] = [
+    {
+      id: 'EXP-001',
+      date: '2026-07-15',
+      category: 'Feed',
+      amount: 4560.00,
+      description: 'Purchased 120kg Layer Feed from Countryside Feed Depot',
+    },
+    {
+      id: 'EXP-002',
+      date: '2026-07-20',
+      category: 'Feed',
+      amount: 1980.00,
+      description: 'Purchased 45kg Chick Starter Crumble',
+    },
+    {
+      id: 'EXP-003',
+      date: '2026-07-05',
+      category: 'Utilities',
+      amount: 1250.00,
+      description: 'Electricity bill for coop lighting & incubator heat lamps',
+    },
+    {
+      id: 'EXP-004',
+      date: '2026-07-12',
+      category: 'Equipment',
+      amount: 1500.00,
+      description: 'Purchased fresh rice hull bedding & wood shavings',
+    }
+  ];
+
+  const sales: Sale[] = [
+    {
+      id: 'SAL-001',
+      date: today,
+      customer: 'Batangas Public Market Stall',
+      category: 'Eggs',
+      breed: 'Rhode Island Red / Barred Rock',
+      quantity: 36, // 3 dozen
+      pricePerUnit: 220.00, // per dozen
+      totalAmount: 660.00,
+      paymentMethod: 'GCash',
+      remarks: '3 dozen fresh farm eggs',
+    },
+    {
+      id: 'SAL-002',
+      date: '2026-07-25',
+      customer: 'Neighbor Aling Maria',
+      category: 'Eggs',
+      breed: 'Rhode Island Red',
+      quantity: 24, // 2 dozen
+      pricePerUnit: 240.00,
+      totalAmount: 480.00,
+      paymentMethod: 'Cash',
+      remarks: '2 dozen extra large eggs',
+    },
+    {
+      id: 'SAL-003',
+      date: '2026-07-18',
+      customer: 'Mang Juan',
+      category: 'Chicken',
+      breed: 'Plymouth Barred Rock',
+      quantity: 2,
+      pricePerUnit: 750.00,
+      totalAmount: 1500.00,
+      paymentMethod: 'Cash',
+      remarks: 'Sold 2 starter pullets',
+    }
+  ];
+
+  const healthRecords: HealthRecord[] = [
+    {
+      id: 'HLT-001',
+      date: '2026-07-10',
+      animalType: 'Chicken',
+      breed: 'All Chicks',
+      type: 'Vaccination',
+      name: 'Newcastle Disease Vaccine (B1 Strain)',
+      dosage: '1 drop per eye',
+      notes: 'Routine booster for young flock',
+      nextDueDate: '2026-10-10',
+    },
+    {
+      id: 'HLT-002',
+      date: '2026-06-15',
+      animalType: 'Turkey',
+      breed: 'Broad Breasted Bronze',
+      type: 'Medicine',
+      name: 'Dewormer (Piperazine)',
+      dosage: 'Added to drinking water',
+      notes: 'Semiannual deworming complete',
+      nextDueDate: '2026-12-15',
+    }
+  ];
+
+  const activityLogs: ActivityLog[] = [
+    {
+      id: 'ACT-001',
+      timestamp: today + ' 08:30 AM',
+      title: 'Egg Collection Recorded',
+      description: 'Collected 18 fresh eggs (11 RIR, 7 Barred Rock)',
+      type: 'egg',
+    },
+    {
+      id: 'ACT-002',
+      timestamp: today + ' 09:15 AM',
+      title: 'Incubator Batch Hatched!',
+      description: 'Batch #1 successfully hatched 6 Silkie chicks. Added to flock!',
+      type: 'incubator',
+    },
+    {
+      id: 'ACT-003',
+      timestamp: today + ' 10:00 AM',
+      title: 'Egg Sale Recorded',
+      description: 'Sold 3 dozen eggs to Market Stall for ₱660.00',
+      type: 'sale',
+    },
+    {
+      id: 'ACT-004',
+      timestamp: today + ' 11:20 AM',
+      title: 'Morning Feeding Completed',
+      description: 'Fed 5.5 kg Organic Layer Feed to chickens & turkeys',
+      type: 'feed',
+    }
+  ];
+
+  const notifications: FarmNotification[] = [
+    {
+      id: 'NOT-001',
+      title: '🥚 Incubator Batch Hatched',
+      message: 'Batch #1 (RIR & Silkie) has completed incubation today! 6 chicks ready.',
+      type: 'hatch',
+      date: today,
+      read: false,
+    },
+    {
+      id: 'NOT-002',
+      title: '🌽 Feed Reminder',
+      message: 'Afternoon feeding scheduled for flock (3.5kg Layer Feed).',
+      type: 'feed',
+      date: today,
+      read: false,
+    },
+    {
+      id: 'NOT-003',
+      title: '📦 Stock Reminder',
+      message: 'Poultry Electrolytes bottle stock is down to 4 units.',
+      type: 'stock',
+      date: '2026-07-28',
+      read: true,
+    }
+  ];
+
+  return {
+    profile,
+    animals,
+    eggCollections,
+    eggStorage: {
+      availableEggs: 42,
+      totalCollected: 180,
+      totalSold: 60,
+      totalIncubated: 10,
+      totalHatched: 6,
+      totalBroken: 2,
+    },
+    incubatorBatches,
+    inventory,
+    feedingRecords,
+    expenses,
+    sales,
+    healthRecords,
+    breedingPairs: [],
+    mortalityRecords: [],
+    activityLogs,
+    notifications,
+  };
+}
