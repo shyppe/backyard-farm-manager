@@ -1,0 +1,6 @@
+{
+  "name": "Backyard Farm Manager",
+  "description": "Complete Backyard Farm Manager web application powered by Google Drive, Google Sheets, and Google Apps Script. Developed by Zac.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
