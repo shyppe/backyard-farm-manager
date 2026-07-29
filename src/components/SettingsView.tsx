@@ -15,7 +15,6 @@ import {
   FolderGit2,
   LogOut,
   Sparkles,
-  Trash2,
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -30,9 +29,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
     isDarkMode,
     toggleDarkMode,
     setAppsScriptUrl,
+    importBackupJSON,
     switchUserEmail,
-    resetToSampleData,
-    resetToZeroRecords,
+    logoutUser,
   } = useFarmContext();
 
   if (!farmData) return null;
@@ -158,7 +157,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
               type="text"
               value={appsScriptUrlInput}
               onChange={e => setAppsScriptUrlInput(e.target.value)}
-              placeholder="https://script.google.com/macros/s/.../exec"
+              placeholder="https://script.google.com/macros/s/AKfycbxdU5nPg24h7-SGuqi1KPFZ13902KGw4MsdOAAIHgzjdImTwBAA0CmCX1uWv9D-FLXMow/exec"
               className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-[11px]"
             />
             <p className="text-[10px] text-slate-500 mt-1">
@@ -202,40 +201,55 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
       <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
         <h3 className="font-bold text-sm text-white flex items-center gap-2">
           <Database className="w-4 h-4 text-indigo-400" />
-          Google Drive Backup & Reset
+          Google Drive Backup & Data Management
         </h3>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
           <button
             onClick={exportBackupJSON}
             className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-2 text-xs transition"
           >
             <Download className="w-4 h-4 text-emerald-400" />
-            Export FarmData.json Backup
+            Export FarmData.json
           </button>
+
+          <label className="w-full sm:w-auto cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-2 text-xs transition">
+            <Upload className="w-4 h-4 text-emerald-400" />
+            Import Backup File
+            <input
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const text = await file.text();
+                  const parsed = JSON.parse(text);
+                  await importBackupJSON(parsed);
+                  alert("FarmData.json backup successfully imported!");
+                } catch (err) {
+                  alert("Error importing file. Please make sure it is a valid FarmData.json backup.");
+                }
+              }}
+            />
+          </label>
 
           <button
             onClick={() => {
-              if (confirm("Are you sure you want to clear all animals, egg logs, feeds, sales, and expenses to zero?")) {
-                resetToZeroRecords();
+              const custom = prompt('Enter Gmail address to switch account:');
+              if (custom && custom.includes('@')) {
+                switchUserEmail(custom.trim());
               }
             }}
-            className="w-full sm:w-auto bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold px-4 py-2.5 rounded-xl border border-rose-500/20 flex items-center justify-center gap-2 text-xs transition"
+            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2.5 rounded-xl border border-slate-700 flex items-center justify-center gap-2 text-xs transition"
           >
-            <Trash2 className="w-4 h-4 text-rose-400" />
-            Clear to Zero Records (Publish Slate)
+            <User className="w-4 h-4 text-emerald-400" />
+            Switch Account
           </button>
 
           <button
-            onClick={resetToSampleData}
-            className="w-full sm:w-auto bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold px-4 py-2.5 rounded-xl border border-amber-500/20 flex items-center justify-center gap-2 text-xs transition"
-          >
-            <Sparkles className="w-4 h-4" />
-            Populate Sample Farm Data
-          </button>
-
-          <button
-            onClick={() => switchUserEmail('guest_' + Math.random().toString(36).substr(2, 6) + '@gmail.com')}
+            onClick={() => logoutUser()}
             className="w-full sm:w-auto bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold px-4 py-2.5 rounded-xl border border-rose-500/20 flex items-center justify-center gap-2 text-xs transition"
           >
             <LogOut className="w-4 h-4" />
