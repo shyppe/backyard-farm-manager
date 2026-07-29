@@ -482,49 +482,67 @@ export const EggsView: React.FC = () => {
       )}
 
       {/* Hatch Completion Modal */}
-      {hatchingBatchId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center text-3xl mb-3">
-              🐣
+      {hatchingBatchId && (() => {
+        const currentBatch = incubatorBatches.find(b => b.id === hatchingBatchId);
+        const maxEggs = currentBatch ? currentBatch.eggQuantity : 100;
+        const speciesLabel = currentBatch?.species === 'Turkey' ? 'Poults' : 'Chicks';
+
+        return (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center text-3xl mb-3">
+                🐣
+              </div>
+              <h3 className="font-bold text-lg text-white">Chicks Hatched Celebration!</h3>
+              <p className="text-xs text-amber-400 font-semibold mt-1">
+                {currentBatch?.batchName} • {maxEggs} Eggs Incubated
+              </p>
+              <p className="text-xs text-slate-400 mt-1 mb-4">
+                Enter the exact number of healthy {speciesLabel.toLowerCase()} hatched (0 to {maxEggs}).
+              </p>
+
+              <form onSubmit={handleCompleteHatch} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Number of Healthy {speciesLabel}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max={maxEggs}
+                    required
+                    value={actualHatchedQty}
+                    onChange={e => {
+                      const val = Math.max(0, Math.min(maxEggs, Number(e.target.value) || 0));
+                      setActualHatchedQty(val);
+                    }}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-center text-2xl font-black text-emerald-400"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Max possible: {maxEggs} (from {maxEggs} incubated eggs)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setHatchingBatchId(null)}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg"
+                  >
+                    Confirm & Add {actualHatchedQty} {speciesLabel}
+                  </button>
+                </div>
+              </form>
             </div>
-            <h3 className="font-bold text-lg text-white">Chicks Hatched Celebration!</h3>
-            <p className="text-xs text-slate-400 mt-1 mb-4">
-              Enter the exact count of healthy chicks hatched. They will automatically be added to your Animal livestock count!
-            </p>
-
-            <form onSubmit={handleCompleteHatch} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Number of Healthy Chicks</label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={actualHatchedQty}
-                  onChange={e => setActualHatchedQty(Number(e.target.value))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-center text-2xl font-black text-emerald-400"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setHatchingBatchId(null)}
-                  className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-lg"
-                >
-                  Confirm & Add Chicks
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
