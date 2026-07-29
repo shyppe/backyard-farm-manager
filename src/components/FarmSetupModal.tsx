@@ -14,8 +14,8 @@ export const FarmSetupModal: React.FC = () => {
 
   const [farmName, setFarmName] = useState("Zac's Backyard Farm");
   const [ownerName, setOwnerName] = useState(currentUserEmail.split('@')[0] || 'Zac');
-  const [farmAddress, setFarmAddress] = useState('Purok 3, Brgy. San Jose, Lipa City, Batangas, Philippines');
-  const [contactNumber, setContactNumber] = useState('+63 917 839 2041');
+  const [farmAddress, setFarmAddress] = useState('Purok 8, Brgy. Lilingayon, Valencia City, Bukidnon, Philippines');
+  const [contactNumber, setContactNumber] = useState('+63 910 687 1382');
   const [farmLogo, setFarmLogo] = useState('https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=250&q=80');
   const [farmBanner, setFarmBanner] = useState('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80');
   const [startWithSampleData, setStartWithSampleData] = useState(false);
@@ -180,7 +180,7 @@ export const FarmSetupModal: React.FC = () => {
                 required
                 value={appsScriptUrlInput}
                 onChange={e => setAppsScriptUrlInput(e.target.value)}
-                placeholder="https://script.google.com/macros/s/.../exec"
+                placeholder="https://script.google.com/macros/s/AKfycbxdU5nPg24h7-SGuqi1KPFZ13902KGw4MsdOAAIHgzjdImTwBAA0CmCX1uWv9D-FLXMow/exec"
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-[11px] focus:outline-none focus:border-emerald-500"
               />
             </div>
