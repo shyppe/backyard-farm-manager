@@ -129,11 +129,64 @@ function loadFarmData(userEmail) {
 
   if (files.hasNext()) {
     const file = files.next();
-    const content = file.getBlob().getDataAsString();
-    return JSON.parse(content);
+    try {
+      const content = file.getBlob().getDataAsString();
+      if (content && content.trim().length > 0) {
+        return JSON.parse(content);
+      }
+    } catch(e) {
+      Logger.log("Error reading JSON file, falling back to Spreadsheet: " + e);
+    }
   }
 
-  return null; // Return null if no data found (triggers setup wizard in client)
+  // Fallback: Check if spreadsheet exists and build data object from tabs
+  const ss = getOrCreateSpreadsheet(folder);
+  return buildDataFromSpreadsheet(ss, userEmail);
+}
+
+function buildDataFromSpreadsheet(ss, userEmail) {
+  const profile = {
+    farmName: "My Backyard Farm",
+    ownerName: userEmail.split('@')[0] || "Farm Owner",
+    farmAddress: "",
+    contactNumber: "",
+    farmLogo: "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&q=80&w=200",
+    farmBanner: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200",
+    googleEmail: userEmail,
+    currency: "USD",
+    isSetupComplete: true,
+    updatedAt: new Date().toISOString().split('T')[0]
+  };
+
+  const settingsSheet = ss.getSheetByName("Settings");
+  if (settingsSheet) {
+    const values = settingsSheet.getDataRange().getValues();
+    for (var i = 1; i < values.length; i++) {
+      const key = values[i][0];
+      const val = values[i][1];
+      if (key === "Farm Name" && val) profile.farmName = val;
+      if (key === "Owner Name" && val) profile.ownerName = val;
+      if (key === "Farm Address" && val) profile.farmAddress = val;
+      if (key === "Contact Number" && val) profile.contactNumber = val;
+      if (key === "Farm Logo" && val) profile.farmLogo = val;
+      if (key === "Farm Banner" && val) profile.farmBanner = val;
+      if (key === "Google Email" && val) profile.googleEmail = val;
+      if (key === "Apps Script URL" && val) profile.appsScriptUrl = val;
+    }
+  }
+
+  return {
+    profile: profile,
+    animals: [],
+    eggCollections: [],
+    incubatorBatches: [],
+    inventory: [],
+    expenses: [],
+    sales: [],
+    healthRecords: [],
+    eggStorage: [],
+    activityLogs: []
+  };
 }
 
 /**
@@ -167,6 +220,28 @@ function saveFarmData(userEmail, data) {
  */
 function syncToSheets(ss, data) {
   if (!data) return;
+
+  // Sync Settings / Farm Profile Sheet
+  if (data.profile) {
+    const sheet = ss.getSheetByName("Settings") || ss.insertSheet("Settings");
+    sheet.clear();
+    const headers = ["Setting Key", "Value"];
+    const rows = [
+      ["Farm Name", data.profile.farmName || ""],
+      ["Owner Name", data.profile.ownerName || ""],
+      ["Farm Address", data.profile.farmAddress || ""],
+      ["Contact Number", data.profile.contactNumber || ""],
+      ["Farm Logo", data.profile.farmLogo || ""],
+      ["Farm Banner", data.profile.farmBanner || ""],
+      ["Google Email", data.profile.googleEmail || ""],
+      ["Apps Script URL", data.profile.appsScriptUrl || ""],
+      ["Currency", data.profile.currency || "USD"],
+      ["Setup Complete", data.profile.isSetupComplete ? "TRUE" : "FALSE"],
+      ["Updated At", data.profile.updatedAt || ""]
+    ];
+    sheet.appendRow(headers);
+    if (rows.length > 0) sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
 
   // Sync Animals Sheet
   if (data.animals) {
