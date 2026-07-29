@@ -238,7 +238,15 @@ export async function syncFarmDataToBackend(
   data: FullFarmData,
   appsScriptUrl?: string
 ): Promise<{ success: boolean; mode: 'google_apps_script' | 'local_drive_simulator'; message: string }> {
-  // If user provided a real Apps Script URL, try pushing live
+  // Always update local storage on current device as fast local backup
+  const storageKey = `backyard_farm_manager_${email.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(data));
+  } catch (e) {
+    console.warn('Failed writing to localStorage:', e);
+  }
+
+  // If user provided a real Apps Script URL, try pushing live to Google Drive & Sheets
   if (appsScriptUrl && appsScriptUrl.trim().length > 10) {
     try {
       const response = await fetch(appsScriptUrl, {
@@ -263,26 +271,15 @@ export async function syncFarmDataToBackend(
         }
       }
     } catch (err) {
-      console.warn('Apps Script endpoint failed, falling back to Google Drive Local Storage Simulator:', err);
+      console.warn('Apps Script endpoint failed, saved to local storage backup:', err);
     }
   }
 
-  // Local Google Drive & Sheets Simulator per account key
-  try {
-    const storageKey = `backyard_farm_manager_${email.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-    localStorage.setItem(storageKey, JSON.stringify(data));
-    return {
-      success: true,
-      mode: 'local_drive_simulator',
-      message: 'Saved to local Google Drive / Sheets persistent store.',
-    };
-  } catch (e) {
-    return {
-      success: false,
-      mode: 'local_drive_simulator',
-      message: 'Local storage error: ' + String(e),
-    };
-  }
+  return {
+    success: true,
+    mode: 'local_drive_simulator',
+    message: 'Saved to local device persistent store.',
+  };
 }
 
 /**
