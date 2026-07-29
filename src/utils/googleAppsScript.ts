@@ -120,32 +120,64 @@ function getOrCreateSpreadsheet(folder) {
   return ss;
 }
 
+function readSettingsFromSheet(ss, baseProfile) {
+  var profile = Object.assign({}, baseProfile || {});
+  var settingsSheet = ss.getSheetByName("Settings");
+  if (settingsSheet) {
+    var values = settingsSheet.getDataRange().getValues();
+    for (var i = 1; i < values.length; i++) {
+      var key = String(values[i][0] || "").trim();
+      var val = values[i][1];
+      if (val !== undefined && val !== null && String(val).trim() !== "") {
+        if (key === "Farm Name") profile.farmName = String(val);
+        if (key === "Owner Name") profile.ownerName = String(val);
+        if (key === "Farm Address") profile.farmAddress = String(val);
+        if (key === "Contact Number") profile.contactNumber = String(val);
+        if (key === "Farm Logo") profile.farmLogo = String(val);
+        if (key === "Farm Banner") profile.farmBanner = String(val);
+        if (key === "Google Email") profile.googleEmail = String(val);
+        if (key === "Apps Script URL") profile.appsScriptUrl = String(val);
+        if (key === "Currency") profile.currency = String(val);
+        if (key === "Setup Complete") profile.isSetupComplete = (val === "TRUE" || val === true || String(val).toUpperCase() === "TRUE");
+      }
+    }
+  }
+  return profile;
+}
+
 /**
- * Load farm data from Google Drive JSON file
+ * Load farm data from Google Drive JSON file & sync with Google Sheets Settings
  */
 function loadFarmData(userEmail) {
   const folder = getOrCreateFarmFolder();
   const files = folder.getFilesByName(DATA_FILE_NAME);
+  const ss = getOrCreateSpreadsheet(folder);
+
+  var farmData = null;
 
   if (files.hasNext()) {
     const file = files.next();
     try {
       const content = file.getBlob().getDataAsString();
       if (content && content.trim().length > 0) {
-        return JSON.parse(content);
+        farmData = JSON.parse(content);
       }
     } catch(e) {
       Logger.log("Error reading JSON file, falling back to Spreadsheet: " + e);
     }
   }
 
-  // Fallback: Check if spreadsheet exists and build data object from tabs
-  const ss = getOrCreateSpreadsheet(folder);
-  return buildDataFromSpreadsheet(ss, userEmail);
+  if (!farmData) {
+    farmData = buildDataFromSpreadsheet(ss, userEmail);
+  } else {
+    farmData.profile = readSettingsFromSheet(ss, farmData.profile || {});
+  }
+
+  return farmData;
 }
 
 function buildDataFromSpreadsheet(ss, userEmail) {
-  const profile = {
+  const baseProfile = {
     farmName: "My Backyard Farm",
     ownerName: userEmail.split('@')[0] || "Farm Owner",
     farmAddress: "",
@@ -158,22 +190,7 @@ function buildDataFromSpreadsheet(ss, userEmail) {
     updatedAt: new Date().toISOString().split('T')[0]
   };
 
-  const settingsSheet = ss.getSheetByName("Settings");
-  if (settingsSheet) {
-    const values = settingsSheet.getDataRange().getValues();
-    for (var i = 1; i < values.length; i++) {
-      const key = values[i][0];
-      const val = values[i][1];
-      if (key === "Farm Name" && val) profile.farmName = val;
-      if (key === "Owner Name" && val) profile.ownerName = val;
-      if (key === "Farm Address" && val) profile.farmAddress = val;
-      if (key === "Contact Number" && val) profile.contactNumber = val;
-      if (key === "Farm Logo" && val) profile.farmLogo = val;
-      if (key === "Farm Banner" && val) profile.farmBanner = val;
-      if (key === "Google Email" && val) profile.googleEmail = val;
-      if (key === "Apps Script URL" && val) profile.appsScriptUrl = val;
-    }
-  }
+  const profile = readSettingsFromSheet(ss, baseProfile);
 
   return {
     profile: profile,
@@ -184,7 +201,14 @@ function buildDataFromSpreadsheet(ss, userEmail) {
     expenses: [],
     sales: [],
     healthRecords: [],
-    eggStorage: [],
+    eggStorage: {
+      availableEggs: 0,
+      totalCollected: 0,
+      totalSold: 0,
+      totalIncubated: 0,
+      totalHatched: 0,
+      totalBroken: 0
+    },
     activityLogs: []
   };
 }
