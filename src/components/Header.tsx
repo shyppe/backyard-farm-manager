@@ -10,7 +10,6 @@ import {
   Search,
   Code,
   User,
-  Check,
   ChevronDown,
   LogOut,
   FolderGit2,
@@ -31,6 +30,7 @@ interface HeaderProps {
   onOpenNotifications: () => void;
 }
 
+// Navigation Items
 const NAV_ITEMS = [
   { id: 'dashboard' as TabType, label: 'Dashboard', icon: LayoutDashboard },
   { id: 'animals' as TabType, label: 'Animals', icon: Bird },
@@ -39,12 +39,6 @@ const NAV_ITEMS = [
   { id: 'finances' as TabType, label: 'Finances', icon: DollarSign },
   { id: 'reports' as TabType, label: 'Reports', icon: FileSpreadsheet },
   { id: 'settings' as TabType, label: 'Settings', icon: Settings },
-];
-
-const DEMO_EMAILS = [
-  { email: 'jackjackque1147@gmail.com', name: 'Zac (Owner)' },
-  { email: 'zac.farm@gmail.com', name: 'Zac (Secondary Farm)' },
-  { email: 'demo.owner@gmail.com', name: 'Demo Farmer' },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
@@ -201,49 +195,19 @@ export const Header: React.FC<HeaderProps> = ({
                   </p>
                 </div>
 
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">
-                  Switch Account (Test Multi-User)
-                </p>
-
-                <div className="space-y-1">
-                  {DEMO_EMAILS.map(item => (
-                    <button
-                      key={item.email}
-                      onClick={() => {
-                        switchUserEmail(item.email);
-                        setShowAccountMenu(false);
-                      }}
-                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition ${
-                        item.email === currentUserEmail
-                          ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30'
-                          : 'text-slate-300 hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <User className="w-3.5 h-3.5 text-slate-400" />
-                        <div className="truncate">
-                          <p className="font-medium text-slate-200">{item.name}</p>
-                          <p className="text-[10px] text-slate-400 truncate">{item.email}</p>
-                        </div>
-                      </div>
-                      {item.email === currentUserEmail && <Check className="w-4 h-4 text-emerald-400" />}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="border-t border-slate-800 mt-2 pt-2 space-y-1">
+                <div className="space-y-1 border-t border-slate-800 pt-2">
                   <button
                     onClick={() => {
-                      const custom = prompt('Enter a custom Gmail address to test account isolation:');
+                      const custom = prompt('Enter Gmail address to switch account:');
                       if (custom && custom.includes('@')) {
                         switchUserEmail(custom.trim());
                       }
                       setShowAccountMenu(false);
                     }}
-                    className="w-full flex items-center gap-2 p-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800 transition"
+                    className="w-full flex items-center gap-2 p-2 rounded-xl text-xs text-slate-200 hover:bg-slate-800 transition font-medium"
                   >
-                    <User className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Enter Custom Gmail...</span>
+                    <User className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Switch Account...</span>
                   </button>
 
                   <button
