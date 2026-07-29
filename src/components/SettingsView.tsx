@@ -36,6 +36,44 @@ const PRESET_BANNERS = [
   { name: 'Poultry Yard', url: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&w=1200&q=80' },
 ];
 
+const compressImage = (file: File, maxWidth: number, maxHeight: number, quality = 0.85): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        } else {
+          resolve((event.target?.result as string) || '');
+        }
+      };
+      img.onerror = () => resolve((event.target?.result as string) || '');
+      img.src = (event.target?.result as string) || '';
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+};
+
 export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModal }) => {
   const {
     currentUserEmail,
@@ -43,7 +81,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
     updateFarmProfile,
     isDarkMode,
     toggleDarkMode,
-    setAppsScriptUrl,
     importBackupJSON,
     switchUserEmail,
     logoutUser,
@@ -75,29 +112,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
     }
   }, [profile]);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setFarmLogo(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file, 300, 300, 0.85);
+        setFarmLogo(compressed);
+      } catch (err) {
+        console.error('Error uploading logo:', err);
+      }
     }
   };
 
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setFarmBanner(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file, 1000, 400, 0.85);
+        setFarmBanner(compressed);
+      } catch (err) {
+        console.error('Error uploading banner:', err);
+      }
     }
   };
 
@@ -110,10 +145,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
       contactNumber: contactNumber.trim(),
       farmLogo,
       farmBanner,
+      appsScriptUrl: appsScriptUrlInput.trim(),
     });
-    if (appsScriptUrlInput !== undefined) {
-      await setAppsScriptUrl(appsScriptUrlInput.trim());
-    }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
