@@ -1,25 +1,20 @@
 import React, { useState } from 'react';
 import { useFarmContext } from '../context/FarmContext';
-import { LogIn, ShieldCheck, Database, HardDrive, FileSpreadsheet, Sparkles, CheckCircle2 } from 'lucide-react';
+import { LogIn, ShieldCheck, Database, HardDrive, FileSpreadsheet } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
   const { loginUser } = useFarmContext();
   const [email, setEmail] = useState('jackjackque1147@gmail.com');
   const [password, setPassword] = useState('');
+  const [appsScriptUrl, setAppsScriptUrl] = useState('');
+  const [showAdvancedSync, setShowAdvancedSync] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setIsLoggingIn(true);
-    await loginUser(email);
-    setIsLoggingIn(false);
-  };
-
-  const handlePresetSelect = async (presetEmail: string) => {
-    setEmail(presetEmail);
-    setIsLoggingIn(true);
-    await loginUser(presetEmail);
+    await loginUser(email, appsScriptUrl.trim() || undefined);
     setIsLoggingIn(false);
   };
 
@@ -99,6 +94,35 @@ export const LoginView: React.FC = () => {
             </div>
           </div>
 
+          {/* Cross-Device Google Drive Sync Web App URL Input */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedSync(!showAdvancedSync)}
+              className="text-xs text-emerald-400 hover:underline font-semibold flex items-center gap-1"
+            >
+              <span>{showAdvancedSync ? '▼ Hide' : '▶'} Connect Google Apps Script Web App (For Multi-Device Sync)</span>
+            </button>
+
+            {showAdvancedSync && (
+              <div className="mt-2.5 p-3 rounded-2xl bg-slate-800/90 border border-slate-700/80 space-y-2 text-xs">
+                <label className="block text-slate-200 font-semibold text-[11px]">
+                  Google Apps Script Web App URL
+                </label>
+                <input
+                  type="text"
+                  value={appsScriptUrl}
+                  onChange={e => setAppsScriptUrl(e.target.value)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono text-[11px] focus:outline-none focus:border-emerald-500"
+                />
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  Paste your Web App URL here when logging in on a new phone or computer to immediately pull your live farm data from Google Drive!
+                </p>
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
             disabled={isLoggingIn}
@@ -118,50 +142,10 @@ export const LoginView: React.FC = () => {
           </button>
         </form>
 
-        {/* Quick Demo Presets */}
-        <div className="space-y-2 pt-2 border-t border-slate-800">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">
-            Quick Sign-In Accounts
-          </p>
-          <div className="space-y-2">
-            <button
-              onClick={() => handlePresetSelect('jackjackque1147@gmail.com')}
-              className="w-full p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 flex items-center justify-between text-left transition"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="text-lg">👨‍🌾</span>
-                <div>
-                  <p className="text-xs font-bold text-white">Zac (Primary Owner)</p>
-                  <p className="text-[10px] text-emerald-400">jackjackque1147@gmail.com</p>
-                </div>
-              </div>
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/20">
-                Sample Loaded
-              </span>
-            </button>
-
-            <button
-              onClick={() => handlePresetSelect('zac.farm@gmail.com')}
-              className="w-full p-2.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 flex items-center justify-between text-left transition"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="text-lg">🌾</span>
-                <div>
-                  <p className="text-xs font-bold text-white">Zac (Secondary Farm)</p>
-                  <p className="text-[10px] text-slate-400">zac.farm@gmail.com</p>
-                </div>
-              </div>
-              <span className="text-[10px] bg-slate-700 text-slate-300 font-bold px-2 py-0.5 rounded-full">
-                Independent
-              </span>
-            </button>
-          </div>
-        </div>
-
         {/* Footer Note */}
-        <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-500 pt-2">
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-slate-500 pt-2 border-t border-slate-800">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>100% Free • No paid database • Offline & Google Drive Mode</span>
+          <span>100% Free • Multi-Device Google Drive Sync Mode</span>
         </div>
 
       </div>
