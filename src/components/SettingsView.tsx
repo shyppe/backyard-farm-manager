@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFarmContext } from '../context/FarmContext';
 import {
   Settings,
@@ -12,14 +12,29 @@ import {
   Download,
   Upload,
   Database,
-  FolderGit2,
   LogOut,
   Sparkles,
+  Image as ImageIcon,
+  Camera,
+  Check,
 } from 'lucide-react';
 
 interface SettingsViewProps {
   onOpenAppsScriptModal: () => void;
 }
+
+const PRESET_LOGOS = [
+  { name: 'Brown Hen', url: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=250&q=80' },
+  { name: 'Rooster', url: 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?auto=format&fit=crop&w=250&q=80' },
+  { name: 'Chicks', url: 'https://images.unsplash.com/photo-1563281577-a7be47e20db9?auto=format&fit=crop&w=250&q=80' },
+  { name: 'Farm House', url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=250&q=80' },
+];
+
+const PRESET_BANNERS = [
+  { name: 'Farm Landscape', url: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80' },
+  { name: 'Green Pasture', url: 'https://images.unsplash.com/photo-1516253593875-bd7ba052fbc5?auto=format&fit=crop&w=1200&q=80' },
+  { name: 'Poultry Yard', url: 'https://images.unsplash.com/photo-1584467541268-b040f83be3fd?auto=format&fit=crop&w=1200&q=80' },
+];
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModal }) => {
   const {
@@ -42,18 +57,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
   const [ownerName, setOwnerName] = useState(profile.ownerName || '');
   const [farmAddress, setFarmAddress] = useState(profile.farmAddress || '');
   const [contactNumber, setContactNumber] = useState(profile.contactNumber || '');
+  const [farmLogo, setFarmLogo] = useState(profile.farmLogo || 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=250&q=80');
+  const [farmBanner, setFarmBanner] = useState(profile.farmBanner || 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80');
   const [appsScriptUrlInput, setAppsScriptUrlInput] = useState(profile.appsScriptUrl || '');
   const [isSaved, setIsSaved] = useState(false);
+
+  // Keep local state synchronized with profile from context
+  useEffect(() => {
+    if (profile) {
+      setFarmName(profile.farmName || '');
+      setOwnerName(profile.ownerName || '');
+      setFarmAddress(profile.farmAddress || '');
+      setContactNumber(profile.contactNumber || '');
+      if (profile.farmLogo) setFarmLogo(profile.farmLogo);
+      if (profile.farmBanner) setFarmBanner(profile.farmBanner);
+      if (profile.appsScriptUrl !== undefined) setAppsScriptUrlInput(profile.appsScriptUrl);
+    }
+  }, [profile]);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setFarmLogo(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setFarmBanner(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateFarmProfile({
-      farmName,
-      ownerName,
-      farmAddress,
-      contactNumber,
+      farmName: farmName.trim(),
+      ownerName: ownerName.trim(),
+      farmAddress: farmAddress.trim(),
+      contactNumber: contactNumber.trim(),
+      farmLogo,
+      farmBanner,
     });
-    if (appsScriptUrlInput) {
+    if (appsScriptUrlInput !== undefined) {
       await setAppsScriptUrl(appsScriptUrlInput.trim());
     }
     setIsSaved(true);
@@ -136,6 +194,147 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onOpenAppsScriptModa
                 onChange={e => setContactNumber(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white"
               />
+            </div>
+          </div>
+
+          {/* Farm Branding: Logo & Banner */}
+          <div className="pt-3 border-t border-slate-800 space-y-4">
+            <h4 className="font-bold text-slate-200 flex items-center gap-2 text-xs">
+              <ImageIcon className="w-4 h-4 text-emerald-400" />
+              Farm Logo & Banner Image
+            </h4>
+
+            {/* Logo Section */}
+            <div className="bg-slate-800/60 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+              <label className="block text-slate-300 font-semibold">Farm Logo</label>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="relative group shrink-0">
+                  <img
+                    src={farmLogo}
+                    alt="Farm Logo Preview"
+                    className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500/50 shadow-md bg-slate-900"
+                  />
+                  <label className="absolute inset-0 bg-slate-950/60 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-white">
+                    <Camera className="w-6 h-6 text-emerald-400" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <div className="space-y-2 flex-1 w-full">
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 text-xs transition">
+                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                      Upload Logo Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-semibold block mb-1">Quick Select Preset Logo:</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {PRESET_LOGOS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setFarmLogo(preset.url)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border flex items-center gap-1.5 transition ${
+                            farmLogo === preset.url
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-bold'
+                              : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600'
+                          }`}
+                        >
+                          <img src={preset.url} alt={preset.name} className="w-4 h-4 rounded-full object-cover" />
+                          {preset.name}
+                          {farmLogo === preset.url && <Check className="w-3 h-3 text-emerald-400" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={farmLogo}
+                    onChange={e => setFarmLogo(e.target.value)}
+                    placeholder="Or enter image URL (https://...)"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px] font-mono mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Banner Section */}
+            <div className="bg-slate-800/60 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+              <label className="block text-slate-300 font-semibold">Farm Header Banner</label>
+              <div className="space-y-3">
+                <div className="relative h-28 rounded-xl overflow-hidden border border-slate-700 group">
+                  <img
+                    src={farmBanner}
+                    alt="Banner Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <label className="cursor-pointer bg-slate-900/90 hover:bg-slate-900 text-white font-bold px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2 text-xs">
+                      <Camera className="w-4 h-4 text-emerald-400" />
+                      Change Banner Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 text-xs transition">
+                    <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    Upload Banner
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {PRESET_BANNERS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setFarmBanner(preset.url)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border flex items-center gap-1.5 transition ${
+                          farmBanner === preset.url
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-bold'
+                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600'
+                        }`}
+                      >
+                        {preset.name}
+                        {farmBanner === preset.url && <Check className="w-3 h-3 text-emerald-400" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <input
+                  type="text"
+                  value={farmBanner}
+                  onChange={e => setFarmBanner(e.target.value)}
+                  placeholder="Or enter banner image URL (https://...)"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px] font-mono"
+                />
+              </div>
             </div>
           </div>
 
